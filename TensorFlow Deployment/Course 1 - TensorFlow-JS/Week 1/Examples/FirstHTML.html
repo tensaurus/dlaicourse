@@ -2,10 +2,15 @@
 <head></head>
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
     <script lang="js">
+        const EPOCHS = 5
+        /*
+        function to train the model with given set of inputs and outputs for number of epochs
+        as specified and a callback to show loss after each epoch in the console
+        */
         async function doTraining(model){
             const history = 
                   await model.fit(xs, ys, 
-                        { epochs: 500,
+                        { epochs: EPOCHS,
                           callbacks:{
                               onEpochEnd: async(epoch, logs) =>{
                                   console.log("Epoch:" 
@@ -17,18 +22,40 @@
                           }
                         });
         }
+        /* 
+        Firt we define a very simple deep learning model with one layer.
+         */
         const model = tf.sequential();
+        // Add a dense layer. More on "dense" later.
         model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+        // Declare loss function and optimizer to be used. More on "loss function" and "optimizer"
+        // later.
         model.compile({loss:'meanSquaredError', 
                        optimizer:'sgd'});
+        // This displays the model structure in javascript console
         model.summary();
+        /*
+        xs are the inputs and ys are the outputs. For this set of inputs, outputs are known 
+        but the relationship between them is not known. In traditional computing we design 
+        the system to get the desired output. But in machine learning we let the system learn
+        the relationship by going through the epochs of training.
+        */
+       /*
+       Inputs: [-1.0, 0.0, 1.0, 2.0, 3.0, 4.0]
+       Outputs: [-3.0, -1.0, 2.0, 3.0, 5.0, 7.0]
+       for now ignore the other things around them, we'll come to that later step by step
+       Like for input "-1.0" output is "-3.0" and for input "2.0" the output is "3.0".
+       If you have a closer look you can tell the mathematical relationship betweent the two
+       set of numbers. It is "y = 2x - 1". For this simple can we could guess it.
+        */
         const xs = tf.tensor2d([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], [6, 1]);
         const ys = tf.tensor2d([-3.0, -1.0, 2.0, 3.0, 5.0, 7.0], [6, 1]);
+        // Train the model by calling the function "doTraining" with the model defined earlier
         doTraining(model).then(() => {
             alert(model.predict(tf.tensor2d([10], [1,1])));
         });
     </script>
 <body>
-    <h1>First HTML Page</h1>
+    <h1>First tfjs example</h1>
 </body>
 </html>
