@@ -25,6 +25,7 @@
         /* 
         Firt we define a very simple deep learning model with one layer.
          */
+        // Create a sequential model
         const model = tf.sequential();
         // Add a dense layer. More on "dense" later.
         model.add(tf.layers.dense({units: 1, inputShape: [1]}));
@@ -50,7 +51,7 @@
         */
         const xs = tf.tensor2d([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], [6, 1]);
         const ys = tf.tensor2d([-3.0, -1.0, 2.0, 3.0, 5.0, 7.0], [6, 1]);
-        // Train the model by calling the function "doTraining" with the model defined earlier
+        // Finally train the model by calling the function "doTraining"
         doTraining(model).then(() => {
             alert(model.predict(tf.tensor2d([10], [1,1])));
         });
