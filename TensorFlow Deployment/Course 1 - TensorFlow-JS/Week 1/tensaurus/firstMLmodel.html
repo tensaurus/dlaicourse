@@ -1,0 +1,54 @@
+<html>
+    <body>
+        <h1>Your First ML model</h1>
+    </body>
+    <!-- To have Tensorflow in your browser add the right source in script tag -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script lang="js">
+        /*
+        x are the inputs and y are the outputs. For this set of inputs, outputs are known 
+        but the relationship between them is not known. In traditional computing we design 
+        the system to get the desired output. But in machine learning we let the system learn
+        the relationship by going through the epochs of training.
+        */
+       /*
+       For input "1.0" output is "2.0" and for input "2.0" the output is "4.0".
+       You can easily guess the mathematical relationship betweent the two
+       set of numbers. It is "y = 2x". For this simple case we could guess it.
+        */
+        // In tensorflow.js they are defined as follows
+        const x = tf.tensor2d([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], [6, 1]);
+        const y = tf.tensor2d([-2.0, 0.0, 2.0, 4.0, 6.0, 8.0], [6, 1]);
+        
+        // First we define a very simple machine learning model.
+        const model = tf.sequential();
+        model.add(tf.layers.dense({units: 1, inputShape: [1]}));
+        model.compile({loss:'meanSquaredError', 
+                       optimizer:'sgd'});
+
+        /*
+        function to train the model with given set of inputs and outputs for number of epochs
+        as specified and a callback to show loss after each epoch in the console
+        */
+        async function doTraining(model){
+            const history = 
+                  await model.fit(x, y, 
+                        { epochs: 500,
+                          callbacks:{
+                              onEpochEnd: async(epoch, logs) =>{
+                                  console.log("Epoch:" 
+                                              + epoch 
+                                              + " Loss:" 
+                                              + logs.loss);
+                                  
+                              }
+                          }
+                        });
+        }
+        // Finally train the model by calling the function "doTraining"
+        // and alert with the output for input = 5
+        doTraining(model).then(() => {
+            alert(model.predict(tf.tensor2d([5], [1,1])));
+        });
+    </script>
+</html>
