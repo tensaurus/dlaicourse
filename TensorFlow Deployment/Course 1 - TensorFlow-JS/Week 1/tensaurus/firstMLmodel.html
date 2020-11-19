@@ -4,7 +4,8 @@
         <!-- take user input and test model -->
         <label for="test_input">Enter number to test the trained model:</label>
         <input type="number" id="test_input" name="test" value="3">
-        <button type="button" id="test_button" onclick="testModel()">Test Model</button>
+        <button type="button" id="test_button" onclick="testModel()" disabled="true">Test Model</button><br>
+        <p id="message">Wait!! Training Model</p>
     </body>
     <!-- To have Tensorflow in your browser add the right source in script tag -->
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
@@ -37,7 +38,7 @@
         async function doTraining(model){
             const history = 
                   await model.fit(x, y, 
-                        { epochs: 500,
+                        { epochs: 100,
                           callbacks:{
                               onEpochEnd: async(epoch, logs) =>{
                                   console.log("Epoch:" 
@@ -52,12 +53,20 @@
         // Finally train the model by calling the function "doTraining"
         // and alert with the output for input = 5
         doTraining(model).then(() => {
-            alert(model.predict(tf.tensor2d([5], [1,1])));
+            document.getElementById("test_button").disabled = false;
+            document.getElementById("message").innerHTML = '';
+            alert("Model Trained!! Now test the model");
         });
         // function to test the model
         function testModel() {
+            // Get the user input value and convert it to number
             const input = Number(document.getElementById("test_input").value);
-            alert(model.predict(tf.tensor2d([input], [1,1])));
+            // Get prediction from the model for user given input. Model prediction
+            // is a Tensor
+            const output = model.predict(tf.tensor2d([input], [1,1]));
+            // Get the numerical value from the tensor using dataSync() and round it
+            const output_number = output.dataSync()[0].toFixed(0);
+            document.getElementById("message").innerHTML = 'Model Predicts: ' + output_number;
         }
     </script>
 </html>
