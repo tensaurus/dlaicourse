@@ -21,10 +21,11 @@
                             ys.species == "virginica" ? 1 : 0,
                             ys.species == "versicolor" ? 1 : 0
                       ] 
-                      return{ xs: Object.values(xs), ys: Object.values(labels)};
-                //   });
-                  }).batch(1);
-            convertedData.take(1).forEachAsync(e => e.ys.print());
+                    //   labels is already an array, Object.values not reqd for it
+                      return{ xs: Object.values(xs), ys: labels};
+                  });
+                //   }).batch(1);
+            convertedData.take(1).forEachAsync(e => console.log(e));
             const model = tf.sequential();
             model.add(tf.layers.dense({inputShape: [numOfFeatures], activation: "sigmoid", units: 5}))
             model.add(tf.layers.dense({activation: "softmax", units: 3}));
