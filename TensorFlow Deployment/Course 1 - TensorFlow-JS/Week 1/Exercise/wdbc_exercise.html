@@ -63,19 +63,20 @@
             model.add(tf.layers.dense({inputShape: [numOfFeatures], activation: "relu", units: 5}))
             model.add(tf.layers.dense({activation: "sigmoid", units: 1}));
             // labels are binary. use loss: "binaryCrossentropy"
-            model.compile({loss: "binaryCrossentropy", optimizer: 'rmsprop'});
+            model.compile({loss: "binaryCrossentropy", optimizer: 'rmsprop', metrics: ['acc']});
             // Compile the model using the binaryCrossentropy loss, 
             // the rmsprop optimizer, and accuracy for your metrics. 
             await model.fitDataset(convertedTrainingData, 
-                             {epochs:10,
+                             {epochs:1,
                               validationData: convertedTestingData,
                               callbacks:{
                                   onEpochEnd: async(epoch, logs) =>{
                                       console.log("Epoch: " + epoch 
-                                                + " Loss: " + logs.loss 
-                                                + " Accuracy: " + logs.acc
-                                                + " Val Loss: " + logs.val_loss
-                                                + " Val Accuracy: " + logs.val_acc);
+                                                + " Loss: " + logs.loss.toFixed(4) 
+                                                + " Accuracy: " + logs.acc.toFixed(4)
+                                                + " Val Loss: " + logs.val_loss.toFixed(4)
+                                                + " Val Accuracy: " + logs.val_acc.toFixed(4));
+                                                // + "Logs: " + Object.keys(logs));
                                   }
                               }});
             // await model.save('downloads://my_model');
