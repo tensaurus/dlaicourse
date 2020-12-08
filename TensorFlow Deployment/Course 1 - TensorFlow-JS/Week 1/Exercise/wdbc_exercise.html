@@ -51,6 +51,7 @@
             // HINT: You can get the number of features from the number of columns
             // and the number of labels in the training data. 
             const numOfFeatures = (await trainingData.columnNames()).length - 1;
+            // console.log(numOfFeatures);
             // In the space below create a neural network that predicts 1 if the diagnosis is malignant
             // and 0 if the diagnosis is benign. Your neural network should only use dense
             // layers and the output layer should only have a single output unit with a
@@ -80,6 +81,16 @@
                                   }
                               }});
             // await model.save('downloads://my_model');
+            // take one test set from testing data and test the model
+            let testVal;
+            let testRes;
+            await testingData.take(1).forEachAsync(e => {
+                testVal = tf.tensor2d(Object.values(e.xs), [1, 30]);
+                testRes = Object.values(e.ys);
+            });
+            console.log("Model Prediction: " + model.predict(testVal)
+                                                    .arraySync()[0][0]
+                                                    .toFixed(0), " True Value: " + testRes[0]);
         }
         run();
     </script>
