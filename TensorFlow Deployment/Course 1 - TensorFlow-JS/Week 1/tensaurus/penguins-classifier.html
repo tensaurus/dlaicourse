@@ -1,0 +1,76 @@
+<html>
+<head></head>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+    <script lang="js">
+        async function run(){
+            const csvUrl = 'penguins.csv';
+            const trainingData = tf.data.csv(csvUrl, {
+                columnConfigs: {
+                    species: {
+                        isLabel: true
+                    },
+                    culmen_length_mm: {
+                        required: true
+                    },
+                    culmen_depth_mm: {
+                        required: true
+                    }
+                },
+                configuredColumnsOnly: true
+            });
+            trainingData.take(1).forEachAsync(e => console.log(e));
+            const numOfFeatures = (await trainingData.columnNames()).length - 1;
+            // const numOfSamples = 150;
+            const convertedData =
+                  trainingData.map(({xs, ys}) => {
+                      const labels = [
+                            ys.species == "Adelie" ? 1 : 0,
+                            ys.species == "Chinstrap" ? 1 : 0,
+                            ys.species == "Gentoo" ? 1 : 0
+                      ] 
+                    //   labels is already an array, Object.values not reqd for it
+                      return{ xs: Object.values(xs), ys: labels};
+                //   });
+                  }).batch(10);
+            // convertedData.take(1).forEachAsync(e => console.log(e));
+            const model = tf.sequential();
+            model.add(tf.layers.dense({inputShape: [numOfFeatures], activation: "sigmoid", units: 5}))
+            model.add(tf.layers.dense({activation: "softmax", units: 3}));
+            
+            model.compile({loss: "categoricalCrossentropy", optimizer: tf.train.adam(0.06)});
+            
+            await model.fitDataset(convertedData, 
+                             {epochs:1,
+                              callbacks:{
+                                  onEpochEnd: async(epoch, logs) =>{
+                                      console.log("Epoch: " + epoch + " Loss: " + logs.loss);
+                                  }
+                              }});
+            
+            // Test Cases:
+            
+            // Setosa
+            // const testVal = tf.tensor2d([4.4, 2.9, 1.4, 0.2], [1, 4]);
+            
+            // Versicolor
+            // const testVal = tf.tensor2d([6.4, 3.2, 4.5, 1.5], [1, 4]);
+            
+            // Virginica
+            // const testVal = tf.tensor2d([5.8,2.7,5.1,1.9], [1, 4]);
+            
+            // const prediction = model.predict(testVal);
+            // const pIndex = tf.argMax(prediction, axis=1).dataSync();
+            
+            // const classNames = ["Setosa", "Virginica", "Versicolor"];
+            
+            // alert(prediction)
+            // alert(classNames[pIndex])
+            
+        }
+        // Run the function run after the page is loaded.
+        document.addEventListener('DOMContentLoaded', run);
+    </script>
+<body>
+    <!-- <h1>Simple Tabular Classifier: Iris Flower</h1> -->
+</body>
+</html>
