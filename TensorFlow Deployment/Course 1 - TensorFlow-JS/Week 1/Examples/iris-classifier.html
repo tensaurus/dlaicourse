@@ -13,7 +13,7 @@
             });
             // trainingData.take(1).forEachAsync(e => console.log(Object.values(e.xs)));
             const numOfFeatures = (await trainingData.columnNames()).length - 1;
-            const numOfSamples = 150;
+            // const numOfSamples = 150;
             const convertedData =
                   trainingData.map(({xs, ys}) => {
                       const labels = [
@@ -23,22 +23,24 @@
                       ] 
                     //   labels is already an array, Object.values not reqd for it
                       return{ xs: Object.values(xs), ys: labels};
-                  });
-                //   }).batch(1);
-            convertedData.take(1).forEachAsync(e => console.log(e));
+                //   });
+                  }).batch(10);
+            // convertedData.take(1).forEachAsync(e => console.log(e));
             const model = tf.sequential();
             model.add(tf.layers.dense({inputShape: [numOfFeatures], activation: "sigmoid", units: 5}))
             model.add(tf.layers.dense({activation: "softmax", units: 3}));
             
-            model.compile({loss: "categoricalCrossentropy", optimizer: tf.train.adam(0.06)});
+            model.compile({loss: "categoricalCrossentropy", optimizer: tf.train.adam(0.06), metrics: ['acc']});
             
-            // await model.fitDataset(convertedData, 
-            //                  {epochs:1,
-            //                   callbacks:{
-            //                       onEpochEnd: async(epoch, logs) =>{
-            //                           console.log("Epoch: " + epoch + " Loss: " + logs.loss);
-            //                       }
-            //                   }});
+            await model.fitDataset(convertedData, 
+                             {epochs:100,
+                              callbacks:{
+                                  onEpochEnd: async(epoch, logs) =>{
+                                      console.log("Epoch: " + epoch +
+                                                  " Loss: " + logs.loss +
+                                                  " Accuracy: " + logs.acc);
+                                  }
+                              }});
             
             // Test Cases:
             
