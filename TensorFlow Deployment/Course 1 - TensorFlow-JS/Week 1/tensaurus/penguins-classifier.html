@@ -15,10 +15,12 @@
                     culmen_depth_mm: {
                         required: true
                     }
+                    // taken only two features, viz, culmen_length_mm and culmen_depth_mm as they
+                    // seggregates the dataset in species in best way as per pairplot
                 },
                 configuredColumnsOnly: true
             });
-            trainingData.take(1).forEachAsync(e => console.log(e));
+            // trainingData.take(1).forEachAsync(e => console.log(e));
             const numOfFeatures = (await trainingData.columnNames()).length - 1;
             // const numOfSamples = 150;
             const convertedData =
@@ -31,8 +33,8 @@
                     //   labels is already an array, Object.values not reqd for it
                       return{ xs: Object.values(xs), ys: labels};
                 //   });
-                  }).batch(10);
-            // convertedData.take(1).forEachAsync(e => console.log(e));
+                  }).batch(128);
+            // convertedData.take(10).forEachAsync(e => console.log(e));
             const model = tf.sequential();
             model.add(tf.layers.dense({inputShape: [numOfFeatures], activation: "sigmoid", units: 5}))
             model.add(tf.layers.dense({activation: "softmax", units: 3}));
@@ -40,7 +42,7 @@
             model.compile({loss: "categoricalCrossentropy", optimizer: tf.train.adam(0.06), metrics: ['acc']});
             
             await model.fitDataset(convertedData, 
-                             {epochs:100,
+                             {epochs:10,
                               callbacks:{
                                   onEpochEnd: async(epoch, logs) =>{
                                       console.log("Epoch: " + epoch + " Loss: " + logs.loss
