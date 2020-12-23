@@ -3,8 +3,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
     <script lang="js">
         async function run(){
-            const csvUrl = 'penguins.csv';
-            const trainingData = tf.data.csv(csvUrl, {
+            const trainingUrl = 'penguins_train.csv';
+            const trainingData = tf.data.csv(trainingUrl, {
                 columnConfigs: {
                     species: {
                         isLabel: true
@@ -14,7 +14,14 @@
                     },
                     culmen_depth_mm: {
                         required: true
+                    // },
+                    // flipper_length_mm: {
+                    //     required: true
+                    // },
+                    // body_mass_g: {
+                    //     required: true
                     }
+
                     // taken only two features, viz, culmen_length_mm and culmen_depth_mm as they
                     // seggregates the dataset in species in best way as per pairplot
                 },
@@ -22,8 +29,9 @@
             });
             // trainingData.take(1).forEachAsync(e => console.log(e));
             const numOfFeatures = (await trainingData.columnNames()).length - 1;
+            console.log(numOfFeatures);
             // const numOfSamples = 150;
-            const convertedData =
+            const convertedTrainingData =
                   trainingData.map(({xs, ys}) => {
                       const labels = [
                             ys.species == "Adelie" ? 1 : 0,
@@ -33,20 +41,76 @@
                     //   labels is already an array, Object.values not reqd for it
                       return{ xs: Object.values(xs), ys: labels};
                 //   });
-                  }).batch(128);
+                  }).batch(180);
             // convertedData.take(10).forEachAsync(e => console.log(e));
+            const testingUrl = 'penguins_test.csv';
+            const testingData = tf.data.csv(testingUrl, {
+                columnConfigs: {
+                    species: {
+                        isLabel: true
+                    },
+                    culmen_length_mm: {
+                        required: true
+                    },
+                    culmen_depth_mm: {
+                        required: true
+                    // },
+                    // flipper_length_mm: {
+                    //     required: true
+                    // },
+                    // body_mass_g: {
+                    //     required: true
+                    }
+
+                    // taken only two features, viz, culmen_length_mm and culmen_depth_mm as they
+                    // seggregates the dataset in species in best way as per pairplot
+                },
+                configuredColumnsOnly: true
+            });
+            // trainingData.take(1).forEachAsync(e => console.log(e));
+            // const numOfFeatures = (await trainingData.columnNames()).length - 1;
+            // console.log(numOfFeatures);
+            // const numOfSamples = 150;
+            const convertedTestingData =
+                  testingData.map(({xs, ys}) => {
+                      const labels = [
+                            ys.species == "Adelie" ? 1 : 0,
+                            ys.species == "Chinstrap" ? 1 : 0,
+                            ys.species == "Gentoo" ? 1 : 0
+                      ] 
+                    //   labels is already an array, Object.values not reqd for it
+                      return{ xs: Object.values(xs), ys: labels};
+                //   });
+                  }).batch(24);
+            // convertedTestingData.take(24).forEachAsync(e => console.log(e));
+            const seed = 1; // seed for same results on each run
             const model = tf.sequential();
-            model.add(tf.layers.dense({inputShape: [numOfFeatures], activation: "sigmoid", units: 5}))
-            model.add(tf.layers.dense({activation: "softmax", units: 3}));
+            model.add(tf.layers.dense({inputShape: [numOfFeatures], 
+                                        activation: "relu", 
+                                        units: 5, 
+                                        // kernelInitializer: tf.initializers.glorotUniform({seed: seed}),
+                                        // biasInitializer: tf.initializers.glorotUniform({seed: seed})
+                                    }));
+            // model.add(tf.layers.dense({activation: "relu", units: 16}))
+            // model.add(tf.layers.dense({activation: "relu", units: 8}))
+            model.add(tf.layers.dense({activation: "softmax", 
+                                        units: 3,
+                                        // kernelInitializer: tf.initializers.glorotUniform({seed: seed}),
+                                        // biasInitializer: tf.initializers.glorotUniform({seed: seed})
+                                    }));
             
-            model.compile({loss: "categoricalCrossentropy", optimizer: tf.train.adam(0.06), metrics: ['acc']});
+            model.compile({loss: "categoricalCrossentropy", optimizer: 'adam', metrics: ['acc']});
             
-            await model.fitDataset(convertedData, 
-                             {epochs:10,
+            await model.fitDataset(convertedTrainingData, 
+                             {epochs:200,
+                                validationData: convertedTestingData,
                               callbacks:{
                                   onEpochEnd: async(epoch, logs) =>{
-                                      console.log("Epoch: " + epoch + " Loss: " + logs.loss
-                                                + " Accuracy: " + logs.acc);
+                                      console.log("Epoch: " + epoch
+                                      + " Loss: " + logs.loss.toFixed(4) 
+                                                + " Accuracy: " + logs.acc.toFixed(4)
+                                                + " Val Loss: " + logs.val_loss.toFixed(4)
+                                                + " Val Accuracy: " + logs.val_acc.toFixed(4));
                                   }
                               }});
             
