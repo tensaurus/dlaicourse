@@ -103,25 +103,28 @@
             model.compile({loss: "categoricalCrossentropy", optimizer: 'adam', metrics: ['acc']});
             let acc;
             await model.fitDataset(convertedTrainingData, 
-                             {epochs: 100,
+                             {epochs: 50,
                                 validationData: convertedTestingData,
-                              callbacks:{
-                                  onEpochEnd: async(epoch, logs) =>{
-                                      acc = logs.acc;
-                                      console.log("Epoch: " + epoch
-                                      + " Loss: " + logs.loss.toFixed(4) 
-                                                + " Accuracy: " + logs.acc.toFixed(4)
-                                                + " Val Loss: " + logs.val_loss.toFixed(4)
-                                                + " Val Accuracy: " + logs.val_acc.toFixed(4));
-                                  },
-                                onTrainEnd: async() =>{
-                                    console.log("training done");
-                                    if (acc>0.4) {
-                                        repeat = false;
-                                        console.log(repeat);
+                              callbacks:[
+                                  new tf.CustomCallback({
+                                    onEpochEnd: async(epoch, logs) =>{
+                                        acc = logs.acc;
+                                        console.log("Epoch: " + epoch 
+                                                  + " Loss: " + logs.loss.toFixed(4) 
+                                                  + " Accuracy: " + logs.acc.toFixed(4) 
+                                                  + " Val Loss: " + logs.val_loss.toFixed(4) 
+                                                  + " Val Accuracy: " + logs.val_acc.toFixed(4));
+                                                },
+                                    onTrainEnd: async() =>{
+                                        console.log("training done");
+                                        if (acc>0.5) {
+                                            repeat = false;
+                                            console.log(repeat);
+                                        }
                                     }
-                                }
-                              }});
+                                }),
+                                tf.callbacks.earlyStopping({monitor: 'acc', patience: 5})
+                            ]});
             // Test Cases:
             
             // Setosa
