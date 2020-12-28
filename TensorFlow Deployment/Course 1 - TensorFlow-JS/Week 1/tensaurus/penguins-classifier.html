@@ -85,19 +85,20 @@
                   }).batch(24);
             // convertedTestingData.take(24).forEachAsync(e => console.log(e));
             // const seed = 1; // seed for same results on each run
+            Math.seedrandom(10);
             const model = tf.sequential();
             model.add(tf.layers.dense({inputShape: [numOfFeatures], 
                                         activation: "relu", 
                                         units: 5, 
-                                        // kernelInitializer: tf.initializers.glorotUniform({seed: seed}),
-                                        // biasInitializer: tf.initializers.glorotUniform({seed: seed})
+                                        // kernelInitializer: tf.initializers.randomNormal({seed: 11}),
+                                        // biasInitializer: 'ones'
                                     }));
             // model.add(tf.layers.dense({activation: "relu", units: 16}))
             // model.add(tf.layers.dense({activation: "relu", units: 8}))
             model.add(tf.layers.dense({activation: "softmax", 
                                         units: 3,
-                                        // kernelInitializer: tf.initializers.glorotUniform({seed: seed}),
-                                        // biasInitializer: tf.initializers.glorotUniform({seed: seed})
+                                        // kernelInitializer: tf.initializers.randomNormal({seed: 11}),
+                                        // biasInitializer: 'ones'
                                     }));
             
             model.compile({loss: "categoricalCrossentropy", optimizer: 'adam', metrics: ['acc']});
@@ -115,15 +116,15 @@
                                                   + " Val Loss: " + logs.val_loss.toFixed(4) 
                                                   + " Val Accuracy: " + logs.val_acc.toFixed(4));
                                                 },
-                                    onTrainEnd: async() =>{
-                                        console.log("training done");
-                                        if (acc>0.5) {
-                                            repeat = false;
-                                            console.log(repeat);
-                                        }
-                                    }
+                                    // onTrainEnd: async() =>{
+                                    //     console.log("training done");
+                                    //     if (acc>0.5) {
+                                    //         repeat = false;
+                                    //         console.log(repeat);
+                                    //     }
+                                    // }
                                 }),
-                                tf.callbacks.earlyStopping({monitor: 'acc', patience: 5})
+                                // tf.callbacks.earlyStopping({monitor: 'acc', patience: 20})
                             ]});
             // Test Cases:
             
@@ -148,13 +149,18 @@
         // Run the function run after the page is loaded.
         // document.addEventListener('DOMContentLoaded', run);
         // run (initialize and train model) for few times using while till desired acc achieved
-        let train = true;
-        (async ()=>{
-            while (train) {
-                train = await run();
-            }
-        })();
-        // run();
+        // let train = true;
+        // (async ()=>{
+        //     while (train) {
+        //         train = await run();
+        //     }
+        // })();
+        run();
+        // (async ()=>{
+        //     for (let i = 0; i < 10; i++) {
+        //         await run();
+        //     }
+        // })();
     </script>
 <body>
     <!-- <h1>Simple Tabular Classifier: Iris Flower</h1> -->
