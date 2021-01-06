@@ -128,22 +128,23 @@
                             ]});
             // Test Cases:
             
-            // Setosa
-            // const testVal = tf.tensor2d([4.4, 2.9, 1.4, 0.2], [1, 4]);
+            // Adelie
+            // const testVal = tf.tensor2d([41, 21], [1, 2]);
+
+            // Chinstrap
+            // const testVal = tf.tensor2d([50.8, 19], [1, 2]);
+
+            // Gentoo
+            const testVal = tf.tensor2d([45, 14], [1, 2]);
+                   
             
-            // Versicolor
-            // const testVal = tf.tensor2d([6.4, 3.2, 4.5, 1.5], [1, 4]);
+            const prediction = model.predict(testVal);
+            const pIndex = tf.argMax(prediction, axis=1).dataSync();
             
-            // Virginica
-            // const testVal = tf.tensor2d([5.8,2.7,5.1,1.9], [1, 4]);
-            
-            // const prediction = model.predict(testVal);
-            // const pIndex = tf.argMax(prediction, axis=1).dataSync();
-            
-            // const classNames = ["Setosa", "Virginica", "Versicolor"];
+            const classNames = ["Adelie", "Chinstrap", "Gentoo"];
             
             // alert(prediction)
-            // alert(classNames[pIndex])
+            alert(classNames[pIndex])
             // return repeat;
         }
         // Run the function run after the page is loaded.
@@ -157,13 +158,14 @@
         // })();
         // run();
         prepareData();
-        (async ()=>{
-            for (let i = 0; i < 10; i++) {
-                Math.seedrandom(i);
-                console.log('seed = ', i);
-                await trainModel();
-            }
-        })();
+        // (async ()=>{
+        //     for (let i = 0; i < 10; i++) {
+        //         Math.seedrandom(i);
+        //         console.log('seed = ', i);
+        //         await trainModel();
+        //     }
+        // })();
+        trainModel();
         </script>
 <body>
     <!-- <h1>Simple Tabular Classifier: Iris Flower</h1> -->
