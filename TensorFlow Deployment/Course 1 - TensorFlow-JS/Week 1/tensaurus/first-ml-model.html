@@ -15,22 +15,11 @@
 <!-- To have Tensorflow in your browser add the right source in script tag -->
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script lang="js">
-    /*
-    x are the inputs and y are the outputs. For this set of inputs, outputs are known 
-    but the relationship between them is not known. In traditional computing we design 
-    the system to get the desired output. But in machine learning we let the system learn
-    the relationship by going through the epochs of training.
-    */
-    /*
-    For input "1.0" output is "2.0" and for input "2.0" the output is "4.0".
-    You can easily guess the mathematical relationship betweent the two
-    set of numbers. It is "y = 2x". For this simple case we could guess it.
-     */
-    // In tensorflow.js they are defined as follows
+    // In tensorflow.js inputs and outputs are defined as follows
     const x = tf.tensor2d([-1.0, 0.0, 1.0, 2.0, 3.0, 4.0], [6, 1]);
     const y = tf.tensor2d([-2.0, 0.0, 2.0, 4.0, 6.0, 8.0], [6, 1]);
     let user_epochs;
-    // First we define a very simple machine learning model.
+    // Define a very simple machine learning model.
     const model = tf.sequential();
     model.add(tf.layers.dense({ units: 1, inputShape: [1] }));
     model.compile({
@@ -48,16 +37,14 @@
                     epochs: user_epochs,
                     callbacks: {
                         onEpochEnd: async (epoch, logs) => {
-                            console.log("Epoch:"
-                                + epoch
-                                + " Loss:"
-                                + logs.loss);
+                            console.log("Epoch:" + epoch + " Loss:" + logs.loss);
                         }
                     }
                 });
     }
-    // Finally train the model by calling the function "doTraining"
+    // Function to train the model
     function trainModel() {
+        // Get the user epochs value and convert it to number
         user_epochs = Number(document.getElementById("epochs_input").value);
         const test_btn = document.getElementById("test_button");
         const train_msg = document.getElementById("message");
@@ -72,11 +59,11 @@
     function testModel() {
         // Get the user input value and convert it to number
         const input = Number(document.getElementById("test_input").value);
-        // Get prediction from the model for user given input. Model prediction
-        // is a Tensor
+        // Get prediction from the model for user given input.
         const output = model.predict(tf.tensor2d([input], [1, 1]));
-        // Get the numerical value from the tensor using dataSync() and round it
+        // Model prediction is a Tensor. Get the numerical value from the tensor
         const output_number = output.dataSync()[0].toFixed(0);
+        // Display the model prediction
         document.getElementById("result").innerHTML = 'Model Prediction: ' + output_number;
     }
 </script>

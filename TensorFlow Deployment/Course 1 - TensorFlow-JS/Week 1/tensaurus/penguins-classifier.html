@@ -6,7 +6,7 @@
     let numOfFeatures;
     let convertedTrainingData;
     let convertedTestingData;
-    const model = tf.sequential();
+    
     function prepareData() {
         let repeat = true;
         const trainingUrl = 'penguins_train.csv';
@@ -48,8 +48,8 @@
                 //   labels is already an array, Object.values not reqd for it
                 return { xs: Object.values(xs), ys: labels };
                 //   });
-            }).batch(18);
-        // convertedData.take(10).forEachAsync(e => console.log(e));
+            }).batch(180);
+        // convertedTrainingData.take(10).forEachAsync(e => console.log(e));
         const testingUrl = 'penguins_test.csv';
         const testingData = tf.data.csv(testingUrl, {
             columnConfigs: {
@@ -88,16 +88,18 @@
                 //   labels is already an array, Object.values not reqd for it
                 return { xs: Object.values(xs), ys: labels };
                 //   });
-            }).batch(8);
+            }).batch(24);
         // convertedTestingData.take(24).forEachAsync(e => console.log(e));
     }
     async function trainModel() {
-        // Math.seedrandom(3);
+        Math.seedrandom(4);
+        const model = tf.sequential();
+        // model.add(tf.layers.batchNormalization({ inputShape: [numOfFeatures]}));
         model.add(tf.layers.dense({ inputShape: [numOfFeatures], activation: "relu", units: 16 }));
-        model.add(tf.layers.dense({ activation: "relu", units: 16 }))
-        model.add(tf.layers.dense({ activation: "relu", units: 8 }))
+        // model.add(tf.layers.dense({ activation: "relu", units: 16 }));
+        model.add(tf.layers.dense({ activation: "relu", units: 8 }));
         model.add(tf.layers.dense({ activation: "softmax", units: 3 }));
-        model.compile({ loss: "categoricalCrossentropy", optimizer: 'adam', metrics: ['acc'] });
+        model.compile({ loss: "categoricalCrossentropy", optimizer: tf.train.adam(0.04), metrics: ['acc'] });
         let acc;
         const numOfEpochs = 100;
         await model.fitDataset(convertedTrainingData,
@@ -109,9 +111,9 @@
                         onEpochEnd: async (epoch, logs) => {
                             // acc = logs.acc;
                             const bar = document.getElementById("myBar");
-                            bar.style.width = epoch * 100 / numOfEpochs + 1 + "%";
-                            bar.innerHTML = epoch;
-                            if (epoch == numOfEpochs - 1) {
+                            bar.style.width = (epoch + 1) * 100 / numOfEpochs + "%";
+                            bar.innerHTML = epoch + 1;
+                            if (true) {
                                 console.log("Epoch: " + epoch
                                     + " Loss: " + logs.loss.toFixed(4)
                                     + " Accuracy: " + logs.acc.toFixed(4)
@@ -129,10 +131,11 @@
                         // }
                         // }
                     }),
-                    // tf.callbacks.earlyStopping({monitor: 'acc', patience: 20})
+                    // tf.callbacks.earlyStopping({monitor: 'loss', patience: 5})
                 ]
             });
         // return repeat;
+        // model.summary();
     }
     // Run the function run after the page is loaded.
     // document.addEventListener('DOMContentLoaded', run);
