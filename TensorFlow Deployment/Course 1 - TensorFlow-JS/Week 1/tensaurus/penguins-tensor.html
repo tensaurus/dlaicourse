@@ -12,12 +12,14 @@
             bill_length: p.culmen_length_mm,
             bill_depth: p.culmen_depth_mm,
             flipper_length: p.flipper_length_mm,
+            body_mass: p.body_mass_g,
+            sex: p.sex,
             species: p.species
         }));
         const penguinsAdelie = penguins.filter(p => (p.species == 'Adelie'));
         const penguinsChinstrap = penguins.filter(p => (p.species == 'Chinstrap'));
         const penguinsGentoo = penguins.filter(p => (p.species == 'Gentoo'));
-        // console.log(penguinsAdelie.length, penguinsChinstrap.length, penguinsGentoo.length);
+        console.log(penguinsAdelie.length, penguinsChinstrap.length, penguinsGentoo.length);
         const adelie = penguinsAdelie.map(p => ({
             x: p.bill_length,
             y: p.bill_depth,
@@ -68,33 +70,36 @@
 
         const inputs = penguins.map(p => ([
             p.bill_length,
-            p.bill_depth
+            p.bill_depth,
+            p.flipper_length,
+            p.body_mass,
+            p.sex == 'MALE' ? 1 : 0
         ]));
-        // console.log(inputs[0]);
+        console.log(inputs[1]);
         const labels = penguins.map(p => ([
             p.species == 'Adelie' ? 1 : 0,
             p.species == 'Chinstrap' ? 1 : 0,
             p.species == 'Gentoo' ? 1 : 0
         ]));
         // console.log(labels[0]);
-        const inputTensor = tf.tensor2d(inputs, [inputs.length, 2]);
+        const inputTensor = tf.tensor2d(inputs, [inputs.length, 5]);
         const labelTensor = tf.tensor2d(labels, [labels.length, 3]);
         const inputMax = inputTensor.max(0);
         const inputMin = inputTensor.min(0);
         const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
         const model = tf.sequential();
-        model.add(tf.layers.dense({ inputShape: [2], units: 8 }));
-        model.add(tf.layers.dense({ activation: "relu", units: 4 }));
+        model.add(tf.layers.dense({ inputShape: [5], units: 5 }));
+        // model.add(tf.layers.dense({ activation: "relu", units: 8 }));
         model.add(tf.layers.dense({ activation: "softmax", units: 3 }));
         model.compile({
             loss: "categoricalCrossentropy",
-            optimizer: "adam",
+            optimizer: tf.train.adam(0.06),
             metrics: ['acc']
         });
-        tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
+        // tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
         await model.fit(normalizedInputs, labelTensor, {
-            batchSize: 128,
-            epochs: 30,
+            batchSize: 32,
+            epochs: 10,
             shuffle: true,
             callbacks: tfvis.show.fitCallbacks(
                 { name: 'Training Performance', tab: 'Model' },
@@ -102,7 +107,7 @@
                 { height: 200, callbacks: ['onEpochEnd'] }
             )
         });
-        const testInputTensor = tf.tensor2d([39.1, 18.7], [1, 2]);
+        const testInputTensor = tf.tensor2d([39.1, 18.7, 181.0, 3750.0, 1], [1, 5]);
         const normalizedTestInput = testInputTensor.sub(inputMin).div(inputMax.sub(inputMin));
         const output = model.predict(normalizedTestInput);
         const pIndex = tf.argMax(output, axis=1).dataSync();
