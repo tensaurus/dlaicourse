@@ -4,37 +4,24 @@
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@latest/dist/tfjs-vis.umd.min.js"></script>
 <script lang="js">
-    const penguinsgUrl = 'penguins.csv';
-    const penguinsCSVData = tf.data.csv(penguinsgUrl);
+    const penguinsgUrl = 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv';
+    const penguinsCSVData = tf.data.csv(penguinsgUrl, {mode: "no-cors"});
     (async () => {
         const penguinsArrayData = await penguinsCSVData.toArray();
-        const penguins = penguinsArrayData.map(p => ({
-            bill_length: p.culmen_length_mm,
-            bill_depth: p.culmen_depth_mm,
-            flipper_length: p.flipper_length_mm,
-            body_mass: p.body_mass_g,
-            sex: p.sex,
-            species: p.species
-        }));
-        const penguinsAdelie = penguins.filter(p => (p.species == 'Adelie'));
-        const penguinsChinstrap = penguins.filter(p => (p.species == 'Chinstrap'));
-        const penguinsGentoo = penguins.filter(p => (p.species == 'Gentoo'));
-        console.log(penguinsAdelie.length, penguinsChinstrap.length, penguinsGentoo.length);
-        const adelie = penguinsAdelie.map(p => ({
-            x: p.bill_length,
-            y: p.bill_depth,
-        }));
-        const chinstrap = penguinsChinstrap.map(p => ({
-            x: p.bill_length,
-            y: p.bill_depth,
-        }));
-        const gentoo = penguinsGentoo.map(p => ({
-            x: p.bill_length,
-            y: p.bill_depth,
-        }));
-        // console.log(adelie.slice(0,10));
+        // Take only those entries where all features have a not null value
+        // filter out the entry if any of the features doen't have a value
+        const penguins = penguinsArrayData.filter(p => Object.values(p).every(e => e != null));
+        // console.log(penguins[0]);
+        // ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm",
+        // "body_mass_g", "sex"]
+        // map function for bill length and bill depth
+        const billLengthVSBillDepth = (p) => ({x: p.bill_length_mm, y: p.bill_depth_mm});
+        const adelie = penguins.filter(p => p.species == "Adelie").map(billLengthVSBillDepth);
+        const chinstrap = penguins.filter(p => p.species == "Chinstrap").map(billLengthVSBillDepth);
+        const gentoo = penguins.filter(p => p.species == "Gentoo").map(billLengthVSBillDepth);
+        // console.log(adelie[0]);
         tfvis.render.scatterplot(
-            { name: 'Bill length vs depth', tab: 'Bill' },
+            { name: 'Bill length vs depth', tab: 'Data Visualization' },
             { values: [adelie, chinstrap, gentoo], series: ['Adelie', 'Chinstrap', 'Gentoo'] },
             {
                 xAxisDomain: [30, 60],
@@ -43,22 +30,12 @@
                 yLabel: 'Bill Depth'
             }
         );
-
-        const adelie1 = penguinsAdelie.map(p => ({
-            x: p.bill_length,
-            y: p.flipper_length,
-        }));
-        const chinstrap1 = penguinsChinstrap.map(p => ({
-            x: p.bill_length,
-            y: p.flipper_length,
-        }));
-        const gentoo1 = penguinsGentoo.map(p => ({
-            x: p.bill_length,
-            y: p.flipper_length,
-        }));
-
+        const billLengthVSFlipperLength = (p) => ({x: p.bill_length_mm, y: p.flipper_length_mm});
+        const adelie1 = penguins.filter(p => p.species == "Adelie").map(billLengthVSFlipperLength);
+        const chinstrap1 = penguins.filter(p => p.species == "Chinstrap").map(billLengthVSFlipperLength);
+        const gentoo1 = penguins.filter(p => p.species == "Gentoo").map(billLengthVSFlipperLength);
         tfvis.render.scatterplot(
-            { name: 'Bill length vs Flipper length', tab: 'Fill' },
+            { name: 'Bill length vs Flipper length', tab: 'Data Visualization' },
             { values: [adelie1, chinstrap1, gentoo1], series: ['Adelie', 'Chinstrap', 'Gentoo'] },
             {
                 xAxisDomain: [30, 60],
@@ -69,34 +46,33 @@
         );
 
         const inputs = penguins.map(p => ([
-            p.bill_length,
-            p.bill_depth,
-            p.flipper_length,
-            p.body_mass,
-            p.sex == 'MALE' ? 1 : 0
+            p.bill_length_mm,
+            p.bill_depth_mm,
+            p.flipper_length_mm,
+            // p.body_mass_g,
+            // p.sex == 'MALE' ? 1 : 0
         ]));
-        console.log(inputs[1]);
+        console.log(inputs[0]);
         const labels = penguins.map(p => ([
             p.species == 'Adelie' ? 1 : 0,
             p.species == 'Chinstrap' ? 1 : 0,
             p.species == 'Gentoo' ? 1 : 0
         ]));
-        // console.log(labels[0]);
-        const inputTensor = tf.tensor2d(inputs, [inputs.length, 5]);
+        const numOfFeatures = inputs[0].length;
+        const inputTensor = tf.tensor2d(inputs, [inputs.length, numOfFeatures]);
         const labelTensor = tf.tensor2d(labels, [labels.length, 3]);
         const inputMax = inputTensor.max(0);
         const inputMin = inputTensor.min(0);
         const normalizedInputs = inputTensor.sub(inputMin).div(inputMax.sub(inputMin));
         const model = tf.sequential();
-        model.add(tf.layers.dense({ inputShape: [5], units: 5 }));
-        // model.add(tf.layers.dense({ activation: "relu", units: 8 }));
+        model.add(tf.layers.dense({ inputShape: [numOfFeatures], units: 3 }));
         model.add(tf.layers.dense({ activation: "softmax", units: 3 }));
         model.compile({
             loss: "categoricalCrossentropy",
-            optimizer: tf.train.adam(0.06),
+            optimizer: tf.train.adam(0.05),
             metrics: ['acc']
         });
-        // tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
+        // // tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
         await model.fit(normalizedInputs, labelTensor, {
             batchSize: 32,
             epochs: 10,
@@ -107,7 +83,7 @@
                 { height: 200, callbacks: ['onEpochEnd'] }
             )
         });
-        const testInputTensor = tf.tensor2d([39.1, 18.7, 181.0, 3750.0, 1], [1, 5]);
+        const testInputTensor = tf.tensor2d([45.2,16.6,191.0], [1, numOfFeatures]);
         const normalizedTestInput = testInputTensor.sub(inputMin).div(inputMax.sub(inputMin));
         const output = model.predict(normalizedTestInput);
         const pIndex = tf.argMax(output, axis=1).dataSync();
