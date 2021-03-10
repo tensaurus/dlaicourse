@@ -1,11 +1,22 @@
 <html>
 
 <head></head>
+
+<body>
+    <div style="width:800px;">
+        <div id="plot" style="width:300px; float:left;"></div>
+        <div id="plot1" style="width:300px; float:left;"></div>
+        <!-- <div style="clear: both;"></div> -->
+        <div id="fit" style="width: 300px; float:left;"></div>
+        <div id="fit1" style="width: 300px; float:left;"></div>
+    </div>
+    <!-- <div style="clear: both;"></div> -->
+</body>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-vis@latest/dist/tfjs-vis.umd.min.js"></script>
 <script lang="js">
     const penguinsgUrl = 'https://raw.githubusercontent.com/mwaskom/seaborn-data/master/penguins.csv';
-    const penguinsCSVData = tf.data.csv(penguinsgUrl, {mode: "no-cors"});
+    const penguinsCSVData = tf.data.csv(penguinsgUrl, { mode: "no-cors" });
     (async () => {
         const penguinsArrayData = await penguinsCSVData.toArray();
         // Take only those entries where all features have a not null value
@@ -15,27 +26,29 @@
         // ["species", "island", "bill_length_mm", "bill_depth_mm", "flipper_length_mm",
         // "body_mass_g", "sex"]
         // map function for bill length and bill depth
-        const billLengthVSBillDepth = (p) => ({x: p.bill_length_mm, y: p.bill_depth_mm});
+        const billLengthVSBillDepth = (p) => ({ x: p.bill_length_mm, y: p.bill_depth_mm });
         const adelie = penguins.filter(p => p.species == "Adelie").map(billLengthVSBillDepth);
         const chinstrap = penguins.filter(p => p.species == "Chinstrap").map(billLengthVSBillDepth);
         const gentoo = penguins.filter(p => p.species == "Gentoo").map(billLengthVSBillDepth);
         // console.log(adelie[0]);
+        const plotElement = document.getElementById("plot");
         tfvis.render.scatterplot(
-            { name: 'Bill length vs depth', tab: 'Data Visualization' },
+            plotElement,
             { values: [adelie, chinstrap, gentoo], series: ['Adelie', 'Chinstrap', 'Gentoo'] },
             {
                 xAxisDomain: [30, 60],
                 yAxisDomain: [10, 30],
                 xLabel: 'Bill Length',
-                yLabel: 'Bill Depth'
+                yLabel: 'Bill Depth',
             }
         );
-        const billLengthVSFlipperLength = (p) => ({x: p.bill_length_mm, y: p.flipper_length_mm});
+        const billLengthVSFlipperLength = (p) => ({ x: p.bill_length_mm, y: p.flipper_length_mm });
         const adelie1 = penguins.filter(p => p.species == "Adelie").map(billLengthVSFlipperLength);
         const chinstrap1 = penguins.filter(p => p.species == "Chinstrap").map(billLengthVSFlipperLength);
         const gentoo1 = penguins.filter(p => p.species == "Gentoo").map(billLengthVSFlipperLength);
+        const plotElement1 = document.getElementById("plot1");
         tfvis.render.scatterplot(
-            { name: 'Bill length vs Flipper length', tab: 'Data Visualization' },
+            plotElement1,
             { values: [adelie1, chinstrap1, gentoo1], series: ['Adelie', 'Chinstrap', 'Gentoo'] },
             {
                 xAxisDomain: [30, 60],
@@ -73,22 +86,29 @@
             metrics: ['acc']
         });
         // // tfvis.show.modelSummary({ name: 'Model Summary', tab: 'Model' }, model);
+        const fitElement = document.getElementById("fit");
+        const fitElement1 = document.getElementById("fit1");
         await model.fit(normalizedInputs, labelTensor, {
             batchSize: 32,
             epochs: 10,
             shuffle: true,
-            callbacks: tfvis.show.fitCallbacks(
-                { name: 'Training Performance', tab: 'Model' },
-                ['loss', 'acc'],
-                { height: 200, callbacks: ['onEpochEnd'] }
-            )
+            callbacks: [tfvis.show.fitCallbacks(
+                fitElement,
+                ['loss'],
+                { height: 200, seriesColors: ["BlueViolet"], callbacks: ['onEpochEnd'] }
+            ),
+            tfvis.show.fitCallbacks(
+                fitElement1,
+                ['acc'],
+                { height: 200, seriesColors: ["GreenYellow"], callbacks: ['onEpochEnd'] }
+            )]
         });
-        const testInputTensor = tf.tensor2d([45.2,16.6,191.0], [1, numOfFeatures]);
-        const normalizedTestInput = testInputTensor.sub(inputMin).div(inputMax.sub(inputMin));
-        const output = model.predict(normalizedTestInput);
-        const pIndex = tf.argMax(output, axis=1).dataSync();
-        const classNames = ["Adelie", "Chinstrap", "Gentoo"];
-        alert(classNames[pIndex])
+        // const testInputTensor = tf.tensor2d([45.2,16.6,191.0], [1, numOfFeatures]);
+        // const normalizedTestInput = testInputTensor.sub(inputMin).div(inputMax.sub(inputMin));
+        // const output = model.predict(normalizedTestInput);
+        // const pIndex = tf.argMax(output, axis=1).dataSync();
+        // const classNames = ["Adelie", "Chinstrap", "Gentoo"];
+        // alert(classNames[pIndex])
     })();
 </script>
 
